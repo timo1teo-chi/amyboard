@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AMYboard Patch Management</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.7; color: #1a1a1a; max-width: 780px; margin: 0 auto; padding: 2rem 1.5rem; background: #fff; }
+  h1 { font-size: 24px; font-weight: 500; margin: 0 0 0.5rem; }
+  h2 { font-size: 18px; font-weight: 500; margin: 2rem 0 1rem; }
+  p { margin: 0 0 0.75rem; }
+  hr { border: none; border-top: 1px solid #e5e5e5; margin: 1.5rem 0; }
+  code { background: #f5f5f5; padding: 1px 6px; border-radius: 4px; font-family: "SF Mono", "Fira Code", monospace; font-size: 13px; }
+  pre { background: #f5f5f5; border-radius: 8px; padding: 1rem 1.25rem; font-family: "SF Mono", "Fira Code", monospace; font-size: 12px; line-height: 1.9; overflow-x: auto; margin: 0 0 0.75rem; }
+  ul, ol { padding-left: 1.25rem; margin: 0 0 1rem; }
+  li { margin-bottom: 0.25rem; }
+  .subtitle { color: #666; margin: 0 0 1.5rem; }
+  .card { background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .card-title { font-family: "SF Mono", "Fira Code", monospace; font-size: 13px; font-weight: 500; margin: 0 0 0.5rem; }
+  .card-desc { color: #666; font-size: 14px; margin: 0 0 0.75rem; }
+  .label { font-size: 14px; font-weight: 500; margin: 0.75rem 0 0.4rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 1rem; }
+  th { text-align: left; padding: 6px 8px; font-weight: 500; color: #666; border-bottom: 1px solid #e5e5e5; }
+  td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
+  td:first-child { font-family: "SF Mono", "Fira Code", monospace; font-size: 13px; }
+  .muted { color: #666; }
+</style>
+</head>
+<body>
+
+<h1>AMYboard Patch Management</h1>
+<p class="subtitle">A toolkit for converting Juno-106 sysex patches and managing MicroPython sketch files for two AMYboard synthesizers — one for lead sounds, one for strings/pads.</p>
+
+<hr>
+
+<h2>Folder structure</h2>
+<pre>amyboard/
+├── scripts/
+│   ├── convert_patches.py    # Converts .syx files into a sketch.py
+│   └── merge_sketches.py     # Merges channels into a master sketch
+├── patches/                  # Place your .syx files here (not tracked in git)
+├── boards/
+│   ├── lead/
+│   │   └── sketch.py         # Active sketch for the lead AMYboard
+│   └── strings_pads/
+│       └── sketch.py         # Active sketch for the strings/pads AMYboard
+└── README.md</pre>
+
+<hr>
+
+<h2>Requirements</h2>
+<ul>
+  <li>Python 3.x with mpremote installed: <code>pip install mpremote</code></li>
+  <li>AMYboard connected via USB-C on COM6 (Windows)</li>
+  <li>Juno-106 <code>.syx</code> files placed in <code>patches/</code></li>
+</ul>
+
+<hr>
+
+<h2>Scripts</h2>
+
+<div class="card">
+  <p class="card-title">scripts/convert_patches.py</p>
+  <p class="card-desc">Reads Juno-106 single-patch <code>.syx</code> files from <code>patches/</code> and generates a <code>sketch.py</code> ready to push to an AMYboard.</p>
+  <p class="label">Configure <code>SELECTED_PATCHES</code> at the top of the script:</p>
+<pre>SELECTED_PATCHES = [
+    ('A13 Phaser Strings Str.syx', 1, 4),   # filename, channel, voices
+    ('A71 Organ 1 Ks.syx',         2, 4),
+    ('A87 Italo Bells Bl.syx',     3, 4),
+]</pre>
+  <ul style="font-size:14px; color:#666;">
+    <li><code>filename</code> — the .syx file in your patches/ folder</li>
+    <li><code>midi_channel</code> — which MIDI channel (1–16) this patch responds to</li>
+    <li><code>num_voices</code> — polyphony (4 for pads/strings, 2 for bass, 1 for mono lead)</li>
+  </ul>
+  <p class="label">Run it:</p>
+<pre>cd scripts
+python convert_patches.py</pre>
+  <p style="font-size:14px; color:#666; margin:0;">Outputs a <code>sketch.py</code> with patches, GM CC map, and MIDI callback. Copy to <code>boards/lead/</code> or <code>boards/strings_pads/</code> before pushing.</p>
+</div>
+
+<div class="card">
+  <p class="card-title">scripts/merge_sketches.py</p>
+  <p class="card-desc">Pulls specific channels from existing sketch files and appends them into a master sketch. Skips any channel already present in the master.</p>
+  <p class="label">Configure <code>MASTER_FILE</code> and <code>SOURCES</code> at the top:</p>
+<pre>MASTER_FILE = 'sketch_master.py'
+
+SOURCES = [
+    ('sketch_brass.py',  1),   # source file, channel
+    ('sketch_bass.py',   2),
+    ('sketch_bells.py',  3),
+]</pre>
+  <p class="label">Run it:</p>
+<pre>cd scripts
+python merge_sketches.py</pre>
+  <ul style="font-size:14px; color:#666; margin:0;">
+    <li>Creates master from scratch if it doesn't exist</li>
+    <li>Appends only new channels — existing ones are skipped</li>
+    <li>CC map and MIDI callback always rewritten cleanly at the bottom</li>
+  </ul>
+</div>
+
+<hr>
+
+<h2>Pushing a sketch to an AMYboard</h2>
+<pre>mpremote connect COM6 resume fs cp boards/lead/sketch.py :current/sketch.py</pre>
+<p style="font-size:14px; color:#666;">Then press RST on the board to reboot and load the new sketch. Adjust COM6 to match your board's port.</p>
+
+<hr>
+
+<h2>CC map</h2>
+<p style="font-size:14px; color:#666; margin-bottom:0.75rem;">The same CC map applies to all channels simultaneously. Send <strong>CC 127, value &gt; 0</strong> on any channel to save live tweaks permanently to the board.</p>
+<table>
+  <thead>
+    <tr><th>CC</th><th>Parameter</th><th>Range</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>LFO amount</td><td class="muted">0.0 – 1.0</td></tr>
+    <tr><td>5</td><td>Portamento</td><td class="muted">0 – 2000ms</td></tr>
+    <tr><td>7</td><td>Volume</td><td class="muted">0.0 – 1.0</td></tr>
+    <tr><td>71</td><td>Resonance</td><td class="muted">0.0 – 8.0</td></tr>
+    <tr><td>72</td><td>Release</td><td class="muted">10 – 4000ms</td></tr>
+    <tr><td>73</td><td>Attack</td><td class="muted">10 – 4000ms</td></tr>
+    <tr><td>74</td><td>Filter cutoff</td><td class="muted">100 – 8000Hz</td></tr>
+    <tr><td>75</td><td>Decay</td><td class="muted">10 – 4000ms</td></tr>
+    <tr><td>91</td><td>Chorus</td><td class="muted">0 / 1 / 2</td></tr>
+    <tr><td>127</td><td>Save to board</td><td class="muted">value &gt; 0 triggers save</td></tr>
+  </tbody>
+</table>
+
+<hr>
+
+<h2>Supported patch formats</h2>
+<ul style="font-size:14px;">
+  <li><strong>Juno-106 single patch dumps</strong> — 24-byte <code>.syx</code> files with a 5-byte Roland header</li>
+  <li class="muted">Bank dumps, Alpha Juno, Juno-6, Juno-60 — not currently supported</li>
+</ul>
+
+<hr>
+
+<h2>Two board setup</h2>
+<table>
+  <thead>
+    <tr><th>Board</th><th>Folder</th><th>Purpose</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Lead</td><td><code>boards/lead/</code></td><td class="muted">Lead lines, bass, mono sounds</td></tr>
+    <tr><td>Strings/Pads</td><td><code>boards/strings_pads/</code></td><td class="muted">Pads, strings, polyphonic textures</td></tr>
+  </tbody>
+</table>
+
+<hr>
+
+<h2>Git workflow</h2>
+<p style="font-size:14px; color:#666; margin-bottom:0.75rem;">After any change to scripts or sketch files, commit and push:</p>
+<pre>git add .
+git commit -m "describe what changed"
+git push</pre>
+
+<hr>
+
+<h2>Workflow summary</h2>
+<ol style="font-size:14px; line-height:2.2;">
+  <li>Place <code>.syx</code> files in <code>patches/</code></li>
+  <li>Edit <code>SELECTED_PATCHES</code> in <code>convert_patches.py</code></li>
+  <li>Run <code>python convert_patches.py</code> → generates <code>sketch.py</code></li>
+  <li>Copy <code>sketch.py</code> to <code>boards/lead/</code> or <code>boards/strings_pads/</code></li>
+  <li>Push to board: <code>mpremote connect COM6 resume fs cp boards/lead/sketch.py :current/sketch.py</code></li>
+  <li>Press RST on the board</li>
+  <li>Commit: <code>git add . && git commit -m "describe what changed"</code></li>
+</ol>
+
+</body>
+</html>
