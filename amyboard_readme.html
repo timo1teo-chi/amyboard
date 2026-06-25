@@ -8,6 +8,7 @@
   body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.7; color: #1a1a1a; max-width: 780px; margin: 0 auto; padding: 2rem 1.5rem; background: #fff; }
   h1 { font-size: 24px; font-weight: 500; margin: 0 0 0.5rem; }
   h2 { font-size: 18px; font-weight: 500; margin: 2rem 0 1rem; }
+  h3 { font-size: 16px; font-weight: 500; margin: 1.5rem 0 0.5rem; }
   p { margin: 0 0 0.75rem; }
   hr { border: none; border-top: 1px solid #e5e5e5; margin: 1.5rem 0; }
   code { background: #f5f5f5; padding: 1px 6px; border-radius: 4px; font-family: "SF Mono", "Fira Code", monospace; font-size: 13px; }
@@ -19,6 +20,9 @@
   .card-title { font-family: "SF Mono", "Fira Code", monospace; font-size: 13px; font-weight: 500; margin: 0 0 0.5rem; }
   .card-desc { color: #666; font-size: 14px; margin: 0 0 0.75rem; }
   .label { font-size: 14px; font-weight: 500; margin: 0.75rem 0 0.4rem; }
+  .platform { display: inline-block; background: #f0f0f0; border-radius: 4px; padding: 1px 8px; font-size: 12px; font-weight: 500; margin-bottom: 0.5rem; }
+  .platform.mac { background: #e8f4e8; color: #2a6a2a; }
+  .platform.win { background: #e8eef8; color: #2a3a6a; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 1rem; }
   th { text-align: left; padding: 6px 8px; font-weight: 500; color: #666; border-bottom: 1px solid #e5e5e5; }
   td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
@@ -44,16 +48,92 @@
 │   │   └── sketch.py         # Active sketch for the lead AMYboard
 │   └── strings_pads/
 │       └── sketch.py         # Active sketch for the strings/pads AMYboard
+├── templates/                # Edisyn Zero SL template files (.syx)
 └── README.md</pre>
 
 <hr>
 
 <h2>Requirements</h2>
 <ul>
-  <li>Python 3.x with mpremote installed: <code>pip install mpremote</code></li>
-  <li>AMYboard connected via USB-C on COM6 (Windows)</li>
-  <li>Juno-106 <code>.syx</code> files placed in <code>patches/</code></li>
+  <li>Python 3.x</li>
+  <li>mpremote: <code>pip install mpremote</code> (Windows) / <code>pip3 install mpremote</code> (Mac)</li>
+  <li>amy: <code>pip install amy</code> (Windows) / <code>pip3 install amy</code> (Mac)</li>
+  <li>Git installed and configured</li>
+  <li>AMYboard connected via USB-C data cable</li>
+  <li>Juno-106 <code>.syx</code> patch files placed in <code>patches/</code></li>
 </ul>
+
+<hr>
+
+<h2>Setup — Windows</h2>
+
+<h3>1 — Install the CH340K USB driver</h3>
+<p style="font-size:14px;">Download and install from <a href="https://www.wch-ic.com/downloads/CH341SER_EXE.html">https://www.wch-ic.com/downloads/CH341SER_EXE.html</a>. After plugging in the AMYboard, check Device Manager under Ports (COM &amp; LPT) for the COM port number (e.g. COM6).</p>
+
+<h3>2 — Install Python</h3>
+<p style="font-size:14px;">Download from <a href="https://python.org/downloads">https://python.org/downloads</a>. Check <strong>Add Python to PATH</strong> during installation.</p>
+
+<h3>3 — Install mpremote and amy</h3>
+<pre>pip install mpremote
+pip install amy</pre>
+
+<h3>4 — Add Python Scripts to PATH</h3>
+<p style="font-size:14px;">Find your Python scripts folder:</p>
+<pre>python -c "import sys; print(sys.executable)"</pre>
+<p style="font-size:14px;">Add both the Python folder and its Scripts subfolder to your user PATH via <strong>Edit the system environment variables → Environment Variables → Path</strong>.</p>
+
+<h3>5 — Configure Git</h3>
+<pre>git config --global user.email "you@example.com"
+git config --global user.name "Your Name"</pre>
+
+<h3>6 — Clone the repo</h3>
+<pre>cd C:\Users\yourname\Documents
+git clone https://github.com/yourusername/amyboard.git</pre>
+
+<h3>7 — Connect to AMYboard</h3>
+<pre>mpremote connect COM6 resume</pre>
+
+<h3>8 — Push a sketch to the board</h3>
+<pre>mpremote connect COM6 resume fs cp boards/lead/sketch.py :current/sketch.py</pre>
+<p style="font-size:14px;">Then press RST on the board to reboot.</p>
+
+<hr>
+
+<h2>Setup — Mac</h2>
+
+<h3>1 — Install Xcode command line tools</h3>
+<p style="font-size:14px;">This installs Git and Python in one go. Run in Terminal and click Install when prompted:</p>
+<pre>xcode-select --install</pre>
+
+<h3>2 — Install mpremote and amy</h3>
+<pre>pip3 install mpremote
+pip3 install amy</pre>
+
+<h3>3 — Add mpremote to PATH</h3>
+<p style="font-size:14px;">Find your Python user base:</p>
+<pre>python3 -m site --user-base</pre>
+<p style="font-size:14px;">Then add the bin folder to your PATH (replace the path with your actual output from above):</p>
+<pre>echo 'export PATH="/Users/yourname/Library/Python/3.9/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc</pre>
+
+<h3>4 — Configure Git</h3>
+<pre>git config --global user.email "you@example.com"
+git config --global user.name "Your Name"</pre>
+
+<h3>5 — Clone the repo</h3>
+<pre>cd ~/Documents
+git clone https://github.com/yourusername/amyboard.git</pre>
+
+<h3>6 — Find the AMYboard port</h3>
+<pre>ls /dev/tty.*</pre>
+<p style="font-size:14px;">Look for something like <code>/dev/tty.usbmodem1101</code>.</p>
+
+<h3>7 — Connect to AMYboard</h3>
+<pre>mpremote connect /dev/tty.usbmodem1101 resume</pre>
+
+<h3>8 — Push a sketch to the board</h3>
+<pre>mpremote connect /dev/tty.usbmodem1101 resume fs cp boards/lead/sketch.py :current/sketch.py</pre>
+<p style="font-size:14px;">Then press RST on the board to reboot.</p>
 
 <hr>
 
@@ -73,10 +153,10 @@
     <li><code>midi_channel</code> — which MIDI channel (1–16) this patch responds to</li>
     <li><code>num_voices</code> — polyphony (4 for pads/strings, 2 for bass, 1 for mono lead)</li>
   </ul>
-  <p class="label">Run it:</p>
-<pre>cd scripts
-python convert_patches.py</pre>
-  <p style="font-size:14px; color:#666; margin:0;">Outputs a <code>sketch.py</code> with patches, GM CC map, and MIDI callback. Copy to <code>boards/lead/</code> or <code>boards/strings_pads/</code> before pushing.</p>
+  <p class="label">Run it (from the patches folder):</p>
+<pre>python convert_patches.py    # Windows
+python3 convert_patches.py   # Mac</pre>
+  <p style="font-size:14px; color:#666; margin:0;">Copy output <code>sketch.py</code> to <code>boards/lead/</code> or <code>boards/strings_pads/</code> before pushing to the board.</p>
 </div>
 
 <div class="card">
@@ -91,20 +171,14 @@ SOURCES = [
     ('sketch_bells.py',  3),
 ]</pre>
   <p class="label">Run it:</p>
-<pre>cd scripts
-python merge_sketches.py</pre>
+<pre>python merge_sketches.py    # Windows
+python3 merge_sketches.py   # Mac</pre>
   <ul style="font-size:14px; color:#666; margin:0;">
     <li>Creates master from scratch if it doesn't exist</li>
     <li>Appends only new channels — existing ones are skipped</li>
     <li>CC map and MIDI callback always rewritten cleanly at the bottom</li>
   </ul>
 </div>
-
-<hr>
-
-<h2>Pushing a sketch to an AMYboard</h2>
-<pre>mpremote connect COM6 resume fs cp boards/lead/sketch.py :current/sketch.py</pre>
-<p style="font-size:14px; color:#666;">Then press RST on the board to reboot and load the new sketch. Adjust COM6 to match your board's port.</p>
 
 <hr>
 
@@ -151,8 +225,34 @@ python merge_sketches.py</pre>
 
 <hr>
 
+<h2>Zero SL template setup</h2>
+<p style="font-size:14px; color:#666; margin-bottom:0.75rem;">Use <strong>Edisyn</strong> (free, Mac/Windows/Linux) to build and send templates to the Zero SL. Download from <a href="https://github.com/eclab/edisyn/releases">https://github.com/eclab/edisyn/releases</a>. Save all template files to <code>templates/</code> in the repo.</p>
+<p style="font-size:14px; color:#666; margin-bottom:0.75rem;">Recommended Zero SL encoder layout for AMYboard sound design:</p>
+<table>
+  <thead>
+    <tr><th>Control</th><th>CC</th><th>Label</th><th>Channel</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Encoder 1</td><td>74</td><td>Filter</td><td class="muted">1</td></tr>
+    <tr><td>Encoder 2</td><td>71</td><td>Reso</td><td class="muted">1</td></tr>
+    <tr><td>Encoder 3</td><td>1</td><td>LFO</td><td class="muted">1</td></tr>
+    <tr><td>Encoder 4</td><td>91</td><td>Chorus</td><td class="muted">1</td></tr>
+    <tr><td>Encoder 5</td><td>73</td><td>Attack</td><td class="muted">1</td></tr>
+    <tr><td>Encoder 6</td><td>75</td><td>Decay</td><td class="muted">1</td></tr>
+    <tr><td>Encoder 7</td><td>72</td><td>Release</td><td class="muted">1</td></tr>
+    <tr><td>Encoder 8</td><td>7</td><td>Volume</td><td class="muted">1</td></tr>
+    <tr><td>Fader 1</td><td>5</td><td>Porta</td><td class="muted">1</td></tr>
+    <tr><td>Button A1</td><td>127</td><td>Save</td><td class="muted">1 — Momentary, Press 127, Release 0</td></tr>
+  </tbody>
+</table>
+<p style="font-size:14px; color:#666;">All controls on MIDI channel 1. Load one patch at a time on channel 1 to dial in, save with the Save button, then move to the next patch.</p>
+
+<hr>
+
 <h2>Git workflow</h2>
-<p style="font-size:14px; color:#666; margin-bottom:0.75rem;">After any change to scripts or sketch files, commit and push:</p>
+<p style="font-size:14px; color:#666; margin-bottom:0.5rem;">Always pull before starting work on either machine:</p>
+<pre>git pull</pre>
+<p style="font-size:14px; color:#666; margin-bottom:0.5rem;">After any change to scripts, sketches or templates:</p>
 <pre>git add .
 git commit -m "describe what changed"
 git push</pre>
@@ -165,9 +265,11 @@ git push</pre>
   <li>Edit <code>SELECTED_PATCHES</code> in <code>convert_patches.py</code></li>
   <li>Run <code>python convert_patches.py</code> → generates <code>sketch.py</code></li>
   <li>Copy <code>sketch.py</code> to <code>boards/lead/</code> or <code>boards/strings_pads/</code></li>
-  <li>Push to board: <code>mpremote connect COM6 resume fs cp boards/lead/sketch.py :current/sketch.py</code></li>
+  <li>Push to board (Windows): <code>mpremote connect COM6 resume fs cp boards/lead/sketch.py :current/sketch.py</code></li>
+  <li>Push to board (Mac): <code>mpremote connect /dev/tty.usbmodem1101 resume fs cp boards/lead/sketch.py :current/sketch.py</code></li>
   <li>Press RST on the board</li>
-  <li>Commit: <code>git add . && git commit -m "describe what changed"</code></li>
+  <li>Use Zero SL to dial in patch parameters via CC, press Save button (CC 127) to save</li>
+  <li>Commit: <code>git add . && git commit -m "describe what changed" && git push</code></li>
 </ol>
 
 </body>
