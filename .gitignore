@@ -7,3 +7,6 @@ __pycache__/
 
 # Ignore temp files
 *.tmp
+
+# Ignore MAC system files
+.DS_Store
